@@ -57,7 +57,7 @@ func Parse(jsonFile *string) {
 
 	v := reflect.ValueOf(args)
 	for i := 0; i < v.NumField(); i++ {
-		var arg string
+		var arg []string
 		pos_short := v.Type().Field(i).Tag.Get("pos_short")
 
 		for _, override := range overrides {
@@ -78,18 +78,22 @@ func Parse(jsonFile *string) {
 		}
 
 		if v.Type().Field(i).Type == reflect.TypeOf("") {
-			arg = fmt.Sprintf("-%s \"%s\"", pos_short, v.Field(i).Interface())
+			arg = append(arg, fmt.Sprintf("-%s", pos_short))
+			arg = append(arg, fmt.Sprintf("%s", v.Field(i).Interface()))
 		} else if v.Type().Field(i).Type == reflect.TypeOf(false) {
 			if v.Field(i).Interface() == false {
-				arg = "-" + pos_short
+				arg = append(arg, "-"+pos_short)
 			}
 		} else if v.Type().Field(i).Type == reflect.TypeOf(0) {
-			arg = fmt.Sprintf("-%s %d", pos_short, int(v.Field(i).Interface().(int64)))
+			arg = append(arg, fmt.Sprintf("-%s", pos_short))
+			arg = append(arg, fmt.Sprintf("%d", int(v.Field(i).Interface().(int64))))
 		} else {
-			arg = fmt.Sprintf("-%s %v", pos_short, v.Field(i).Interface())
+			arg = append(arg, fmt.Sprintf("-%s", pos_short))
+			arg = append(arg, fmt.Sprintf("%v", v.Field(i).Interface()))
 		}
-		if arg != "" {
-			PosArgs = append(PosArgs, arg)
+		if arg[0] != "" {
+			PosArgs = append(PosArgs, arg...)
 		}
 	}
+	PosArgs = append([]string{"create"}, PosArgs...)
 }
